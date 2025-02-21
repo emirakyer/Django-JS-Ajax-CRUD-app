@@ -16,15 +16,20 @@ Including another URLconf
 from django.urls import path, include
 from .views import(
     post_list_and_create,
-    hello_world_view,
     load_post_data_view,
+    like_unlike_post,
+
+    hello_world_view,
+
 )
 
 app_name = 'posts'
 
 urlpatterns = [
     path('', post_list_and_create, name="main_board"),
-    path('data/', load_post_data_view, name='posts-data'),
-    path('hello-world/', hello_world_view, name="hello-world")
+    path('like-unlike/', like_unlike_post, name='like-unlike'),  # ✅ Sonunda `/` var
+    path('data/<int:num_posts>/', load_post_data_view, name='posts-data'),
+
+    path('hello-world/', hello_world_view, name="hello-world"),
 ]
 
