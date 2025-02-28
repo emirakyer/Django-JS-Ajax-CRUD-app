@@ -1,5 +1,7 @@
 console.log('hello world')
-
+function handleAlerts(type, message) {
+    alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+}
 const postsBox = document.getElementById('posts-box')
 const spinnerBox = document.getElementById('spinner-box')
 const loadBtn = document.getElementById('load-btn')
@@ -9,6 +11,11 @@ const postForm = document.getElementById('post-form')
 const title = document.getElementById('id_title')
 const body = document.getElementById('id_body')
 const csrf = document.getElementsByName('csrfmiddlewaretoken')
+
+const url = window.location.href
+
+
+const alertBox = document.getElementById('alert-box')
 console.log('csrf',csrf[0].value)
 
 const getCookie = (name) => {
@@ -28,6 +35,13 @@ const getCookie = (name) => {
 }
 
 const csrftoken = getCookie('csrftoken');
+
+const deleted = localStorage.getItem('title')
+if (deleted){
+    handleAlerts('danger', `deleted "${deleted}"`)
+    localStorage.clear()
+}
+
 
 const likeUnlikePosts = () => {
     const likeUnlikeForms = [...document.getElementsByClassName('like-unlike-forms')];
@@ -78,7 +92,7 @@ const getData = () => {
                             <div class="card-footer">
                                 <div class="row">
                                     <div class="col-1">
-                                        <a href='#' class="btn btn-primary">Details</a>
+                                        <a href='${url}${el.id}' class="btn btn-primary">Details</a>
                                     </div>
                                     <div class="col-1">
                                         <form class="like-unlike-forms" data-form-id="${el.id}">
@@ -93,9 +107,16 @@ const getData = () => {
                         </div>       
                     `;
                 });
-
                 likeUnlikePosts();
             }, 100);
+            console.log(response.size)
+            if (response.size === 0) {
+                endBox.textContent = 'No posts added yet...'
+            }
+            else if (response.size <= visible) {
+                loadBtn.classList.add('not-visible')
+                endBox.textContent = 'No more posts to load'
+            }
         },
         error: function(error) {
             console.log(error);
@@ -118,24 +139,50 @@ loadBtn.addEventListener('click', ()=>{
     getData()
 })
 
-postForm.addEventListener('submit', e=>{
-    e.preventDefault()
+postForm.addEventListener('submit', e => {
+    e.preventDefault();
 
     $.ajax({
         type: 'POST',
-        url: '',
+        url: '',  // Buraya doğru endpoint URL'sini ekleyin
         data: {
             'csrfmiddlewaretoken': csrf[0].value,
             'title': title.value,
             'body': body.value
         },
-        success: function(response){
-            console.log(response)
+        success: function(response) {
+            console.log(response);
+            postsBox.innerHTML += `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h5 class="card-title">${response.title}</h5>
+                        <p class="card-text">${response.body}</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-1">
+                                <a href='#' class="btn btn-primary">Details</a>
+                            </div>
+                            <div class="col-1">
+                                <form class="like-unlike-forms" data-form-id="${response.id}">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                                    <button type="submit" class="btn btn-primary" id="like-unlike-${response.id}">
+                                        ${response.liked ? `Unlike (${response.count})` : `Like (${response.count})`}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>       
+            `;
+            $('#addPostModal').modal('hide');
+            handleAlerts('success', 'New post added!');
+            postForm.reset();
         },
-        error: function(error){
-            console.log(error)
+        error: function(error) {
+            console.log(error);
         }
-    })
-})
+    });
+});
 
 getData()

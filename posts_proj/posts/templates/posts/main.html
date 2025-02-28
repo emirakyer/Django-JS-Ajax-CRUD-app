@@ -37,15 +37,10 @@ posts
         </div>
     </div>
 
+    <div id="alert-box"></div>
     <button type="button" class="btn btn-info mb-2" data-bs-toggle="modal" data-bs-target="#addPostModal">
         add post
     </button>
-
-    {% comment %}
-        {% for obj in qs %}
-            {{obj.title}} - {{obj.body}} <br>
-        {% endfor %} 
-    {% endcomment %}
 
     <div id="posts-box"></div>
     <div id="spinner-box" class="text-center">
